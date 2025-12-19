@@ -1,0 +1,215 @@
+;/******************************************************************************
+;*  File Name:   amdacpusb.inf
+;*
+;*  Project:     AMD USB Audio Function Driver
+;*
+;*  Copyright (c) 2021-2025 Advanced Micro Devices, Inc. All rights reserved.
+;******************************************************************************/
+
+[Version]
+Signature = "$WINDOWS NT$"
+Class = Media ; 
+ClassGuid = {4d36e96c-e325-11ce-bfc1-08002be10318}
+Provider = %ManufacturerName%
+CatalogFile = amdacpusb.cat
+DriverVer = 10/31/2025, 6.0.3.39
+PnpLockDown = 1
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+amdacpusb.sys  = 1
+
+
+[Manufacturer]
+%ManufacturerName%=AMD,NTAMD64.10.0...16299
+
+
+[AMD.NTAMD64.10.0...16299]
+%AMDAcpUsbDeviceDescription%=AMDAcpUsbInstall, ACP\DEVTYPE_0007&DEVREV_0000&VEN_1022&DEV_15E2&REV_63
+%AMDAcpUsbDeviceDescription%=AMDAcpUsbInstall, ACP\DEVTYPE_0007&DEVREV_0000&VEN_1022&DEV_15E2&REV_70
+%AMDAcpUsbDeviceDescription%=AMDAcpUsbInstall, ACP\DEVTYPE_0007&DEVREV_0000&VEN_1022&DEV_15E2&REV_71
+%AMDAcpUsbDeviceDescription%=AMDAcpUsbInstall, ACP\DEVTYPE_0007&DEVREV_0000&VEN_1022&DEV_15E2&REV_72
+
+[DestinationDirs]
+AMDAcpUsbInstall.CopyList=13 ; 13=Package's DriverStore directory
+
+[AMDAcpUsbInstall]
+Include=ks.inf,wdmaudio.inf
+Needs=KS.Registration, WDMAUDIO.Registration, MsApoFxProxy.Registration
+CopyFiles=AMDAcpUsbInstall.CopyList
+AddReg=AMDAcpUsbInstall.AddReg
+FeatureScore = FE
+
+[AMDAcpUsbInstall.CopyList]
+amdacpusb.sys
+
+[AMDAcpUsbInstall.AddReg]
+HKR,,AssociatedFilters,,"wdmaud,swmidi,redbook"
+HKR,,Driver,,amdacpusb.sys
+HKR,Drivers,SubClasses,,"wave,midi,mixer"
+
+HKR,Drivers\wave\wdmaud.drv,Driver,,wdmaud.drv
+HKR,Drivers\midi\wdmaud.drv,Driver,,wdmaud.drv
+HKR,Drivers\mixer\wdmaud.drv,Driver,,wdmaud.drv
+
+HKR,Drivers\wave\wdmaud.drv,Description,,%AMDAcpUsbDeviceDescription%
+HKR,Drivers\midi\wdmaud.drv,Description,,%AMDAcpUsbDeviceDescription%
+HKR,Drivers\mixer\wdmaud.drv,Description,,%AMDAcpUsbDeviceDescription%
+
+HKR,GlobalSettings,ByPassAAC,0,00,00,00,00; 1 BypassAAC, 0 don't BypassAAC
+
+
+HKR,PowerSettings,ConservationIdleTime,3,3,0,0,0          ; 3 seconds for idle power management when on battery
+HKR,PowerSettings,PerformanceIdleTime,3,3,0,0,0           ; 3 seconds for idle power management when on AC power
+HKR,PowerSettings,IdlePowerState,3,3,0,0,0                ; go to D3 for idle power management
+
+HKR,DispatchSettings,UsePositionLock,3,01,00,00,00
+HKLM,%MEDIA_CATEGORIES%\%SidetoneGUID%,Name,,%SidetonePinname%
+
+[AMDAcpUsbInstall.Services]
+AddService=AMDAcpUsbAudioService,0x00000002,AcpUsbAudio_Service_Install
+
+[AcpUsbAudio_Service_Install]
+DisplayName=%AMDAcpUsbDriver.SVCDESC%
+ServiceType=1
+StartType=3
+ErrorControl=1
+ServiceBinary=%13%\amdacpusb.sys
+
+[AMDAcpUsbInstall.Interfaces]
+
+;
+; Interfaces for USB Headset speaker (external) render endpoint.
+;
+AddInterface=%KSCATEGORY_AUDIO%, %KSNAME_WaveUsbHsSpeaker%, AMDAcpUsbInstall.I.WaveUsbHsSpeaker
+AddInterface=%KSCATEGORY_RENDER%, %KSNAME_WaveUsbHsSpeaker%, AMDAcpUsbInstall.I.WaveUsbHsSpeaker
+AddInterface=%KSCATEGORY_REALTIME%, %KSNAME_WaveUsbHsSpeaker%, AMDAcpUsbInstall.I.WaveUsbHsSpeaker
+AddInterface=%KSCATEGORY_AUDIO%, %KSNAME_TopologyUsbHsSpeaker%, AMDAcpUsbInstall.I.TopologyUsbHsSpeaker
+AddInterface=%KSCATEGORY_TOPOLOGY%, %KSNAME_TopologyUsbHsSpeaker%, AMDAcpUsbInstall.I.TopologyUsbHsSpeaker
+
+;
+; Interfaces for USB Headset mic (external) capture endpoint 
+;
+AddInterface=%KSCATEGORY_AUDIO%,    %KSNAME_WaveUsbHsMic%, AMDAcpUsbInstall.I.WaveUsbHsMic
+AddInterface=%KSCATEGORY_REALTIME%, %KSNAME_WaveUsbHsMic%, AMDAcpUsbInstall.I.WaveUsbHsMic
+AddInterface=%KSCATEGORY_CAPTURE%,  %KSNAME_WaveUsbHsMic%, AMDAcpUsbInstall.I.WaveUsbHsMic
+AddInterface=%KSCATEGORY_AUDIO%,    %KSNAME_TopologyUsbHsMic%, AMDAcpUsbInstall.I.TopologyUsbHsMic
+AddInterface=%KSCATEGORY_TOPOLOGY%, %KSNAME_TopologyUsbHsMic%, AMDAcpUsbInstall.I.TopologyUsbHsMic
+
+
+;======================================================
+; render interfaces: USB Headset speaker (external)
+;======================================================
+[AMDAcpUsbInstall.I.WaveUsbHsSpeaker]
+AddReg=AMDAcpUsbInstall.I.WaveUsbHsSpeaker.AddReg
+[AMDAcpUsbInstall.I.WaveUsbHsSpeaker.AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%AMDAcpUsbInstall.WaveUsbHsSpeaker.szPname%
+
+[AMDAcpUsbInstall.I.TopologyUsbHsSpeaker]
+AddReg=AMDAcpUsbInstall.I.TopologyUsbHsSpeaker.AddReg
+[AMDAcpUsbInstall.I.TopologyUsbHsSpeaker.AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%AMDAcpUsbInstall.TopologyUsbHsSpeaker.szPname%
+; The following lines opt-in to pull mode.
+HKR,EP\0,%PKEY_AudioEndpoint_Association%,,%KSNODETYPE_ANY%
+HKR,EP\0,%PKEY_AudioEndpoint_Supports_EventDriven_Mode%,0x00010001,0x1
+
+;======================================================
+; capture interfaces: USB Headset mic (external)
+;======================================================
+[AMDAcpUsbInstall.I.WaveUsbHsMic]
+AddReg=AMDAcpUsbInstall.I.WaveUsbHsMic.AddReg
+[AMDAcpUsbInstall.I.WaveUsbHsMic.AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%AMDAcpUsbInstall.WaveUsbHsMic.szPname%
+
+[AMDAcpUsbInstall.I.TopologyUsbHsMic]
+AddReg=AMDAcpUsbInstall.I.TopologyUsbHsMic.AddReg,MsApoFxProxy.I.Association0.AddReg
+[AMDAcpUsbInstall.I.TopologyUsbHsMic.AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%AMDAcpUsbInstall.TopologyUsbHsMic.szPname%
+; The following lines opt-in to pull mode.
+HKR,EP\0,%PKEY_AudioEndpoint_Association%,,%KSNODETYPE_ANY%
+HKR,EP\0,%PKEY_AudioEndpoint_Supports_EventDriven_Mode%,0x00010001,0x1
+
+;======================================================
+; MsApoFxProxy APO registry
+;======================================================
+[MsApoFxProxy.I.Association0.AddReg]
+HKR,"FX\\0",%PKEY_FX_Association%,,%KSNODETYPE_ANY%
+HKR,"FX\\0",%PKEY_ItemNameDisplay%,,%FX_FriendlyName%
+
+
+;======================================================
+; WDF
+;======================================================
+[AMDAcpUsbInstall.Wdf]
+KmdfService = AMDAcpUsbAudioService, AcpUsb_Install_WdfSect
+
+[AcpUsb_Install_WdfSect]
+KmdfLibraryVersion = 1.15
+
+;======================================================
+; COMMON
+;======================================================
+[Strings]
+SPSVCINST_ASSOCSERVICE  = 0x00000002
+ManufacturerName            = "AMD"
+DiskName                    = "AMD Driver Installation Disk"
+AMDAcpUsbDeviceDescription    = "AMD USB Audio Device"
+AMDAcpUsbDriver.SVCDESC       = "AMD USB Audio Service"
+
+KSNAME_WaveUsbHsSpeaker="WaveUsbHsSpeaker"
+KSNAME_TopologyUsbHsSpeaker="TopologyUsbHsSpeaker"
+
+KSNAME_WaveUsbHsMic="WaveUsbHsMic"
+KSNAME_TopologyUsbHsMic="TopologyUsbHsMic"
+
+AMDAcpUsbInstall.WaveUsbHsSpeaker.szPname="AMD Wave USB Headset Speaker"
+AMDAcpUsbInstall.TopologyUsbHsSpeaker.szPname="AMD Topology USB Headset Speaker"
+
+AMDAcpUsbInstall.WaveUsbHsMic.szPname="AMD Wave USB Headset Microphone"
+AMDAcpUsbInstall.TopologyUsbHsMic.szPname="AMD Topology USB Headset Microphone"                                                    
+
+
+AUDIO_SIGNALPROCESSINGMODE_DEFAULT                          = "{C18E2F7E-933D-4965-B7D1-1EEF228D2AF3}"
+AUDIO_SIGNALPROCESSINGMODE_SPEECH                           = "{FC1CFC9B-B9D6-4CFA-B5E0-4BB2166878B2}"
+
+KSCATEGORY_AUDIO                                            = "{6994AD04-93EF-11D0-A3CC-00A0C9223196}"
+KSCATEGORY_RENDER                                           = "{65E8773E-8F56-11D0-A3B9-00A0C9223196}"
+KSCATEGORY_CAPTURE                                          = "{65E8773D-8F56-11D0-A3B9-00A0C9223196}"
+KSCATEGORY_TOPOLOGY                                         = "{DDA54A40-1E4C-11D1-A050-405705C10000}"
+KSCATEGORY_REALTIME                                         = "{EB115FFC-10C8-4964-831D-6DCB02E6F23F}"
+Proxy.CLSID                                                 = "{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
+
+FX_UI_CLSID                                                 = "{5860E1C5-F95C-4a7a-8EC8-8AEF24F379A1}"
+KSNODETYPE_ANY                                              = "{00000000-0000-0000-0000-000000000000}"
+FX_STREAM_CLSID                                             = "{62dc1a93-ae24-464c-a43e-452f824c4250}"
+FX_MODE_CLSID                                               = "{637c490d-eee3-4c0a-973f-371958802da2}"
+FX_FriendlyName                                             = "Microsoft Audio Home Theater Effects"
+
+
+PKEY_FX_Association                                         = "{D04E05A6-594B-4fb6-A80D-01AF5EED7D1D},0"
+PKEY_AudioEndpoint_Association                              = "{1DA5D803-D492-4EDD-8C23-E0C0FFEE7F0E},2"
+PKEY_AudioEndpoint_Supports_EventDriven_Mode                = "{1DA5D803-D492-4EDD-8C23-E0C0FFEE7F0E},7"
+
+PKEY_FX_UiClsid                                             = "{D04E05A6-594B-4fb6-A80D-01AF5EED7D1D},3"
+PKEY_FX_StreamEffectClsid                                   = "{D04E05A6-594B-4fb6-A80D-01AF5EED7D1D},5"
+PKEY_FX_ModeEffectClsid                                     = "{D04E05A6-594B-4fb6-A80D-01AF5EED7D1D},6"
+
+PKEY_ItemNameDisplay                                        = "{B725F130-47EF-101A-A5F1-02608C9EEBAC},10"
+MEDIA_CATEGORIES                                            = "SYSTEM\CurrentControlSet\Control\MediaCategories"
+MicInCustomNameGUID                                         = "{d48deb08-fd1c-4d1e-b821-9064d49ae96e}"
+
+FX_DISCOVER_EFFECTS_APO_CLSID                               = "{889C03C8-ABAD-4004-BF0A-BC7BB825E166}"
+PKEY_SFX_ProcessingModes_Supported_For_Streaming            = "{D3993A3F-99C2-4402-B5EC-A92A0367664B},5"
+PKEY_MFX_ProcessingModes_Supported_For_Streaming            = "{D3993A3F-99C2-4402-B5EC-A92A0367664B},6"
+REG_MULTI_SZ                                                = 0x00010000; FLG_ADDREG_TYPE_MULTI_SZ
+SidetoneGUID												= {f3556260-edb5-4bfc-b601-f0cab69012f5}
+SidetonePinname												= "Sidetone"
+
+;PKEY_FX_Association                 = "{D04E05A6-594B-4FB6-A80D-01AF5EED7D1D},0"
+PKEY_FX_EndpointEffectClsid         = "{D04E05A6-594B-4fb6-A80D-01AF5EED7D1D},7"

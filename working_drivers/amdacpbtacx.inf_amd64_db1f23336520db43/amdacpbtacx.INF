@@ -1,0 +1,229 @@
+;/******************************************************************************
+;*  File Name:   amdacpbtacx.inf
+;*  Project:     AMD Bluetooth Audio Driver
+;*
+;*  Copyright(c) 2022-2025 Advanced Micro Devices, Inc. All rights reserved.
+;******************************************************************************/
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=MEDIA
+ClassGuid={4d36e96c-e325-11ce-bfc1-08002be10318}
+Provider=%ManufacturerName%
+DriverVer=10/31/2025, 6.0.3.37
+CatalogFile=amdacpbtacx.cat
+PnpLockdown=1
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+;*****************************************
+; Audio Device Install Section
+;*****************************************
+[ControlFlags]
+ExcludeFromSelect = {6F343DF4-D21D-439B-AAED-CC49E25FE278}\Render
+ExcludeFromSelect = {6F343DF4-D21D-439B-AAED-CC49E25FE278}\Capture
+ExcludeFromSelect = {36EAB28D-FBE5-4361-BB91-31E636001691}\Render
+ExcludeFromSelect = {36EAB28D-FBE5-4361-BB91-31E636001691}\Capture
+ExcludeFromSelect = {7B9A21A0-16A9-445D-8187-7E7D0040AD18}\Render
+ExcludeFromSelect = {7B9A21A0-16A9-445D-8187-7E7D0040AD18}\Capture
+
+[Manufacturer]
+%ManufacturerName%=AMD,NTAMD64.10.0...16299
+
+[AMD.NTAMD64.10.0...16299]
+%AmdDspDevice.DeviceDesc%=Audio_Device,ACP\DEVTYPE_0004&DEVREV_0001&VEN_1022&DEV_15E2&REV_63
+%AmdDspDevice.DeviceDesc%=Audio_Device,ACP\DEVTYPE_0004&DEVREV_0001&VEN_1022&DEV_15E2&REV_70
+%AmdDspDevice.DeviceDesc%=Audio_Device,ACP\DEVTYPE_0004&DEVREV_0001&VEN_1022&DEV_15E2&REV_71
+%AmdDspDevice.DeviceDesc%=Audio_Device,ACP\DEVTYPE_0004&DEVREV_0001&VEN_1022&DEV_15E2&REV_72
+
+%AmdDspDevice.DeviceDesc%=Audio_Device,ACP\DEVTYPE_0004&DEVREV_0002&VEN_1022&DEV_15E2&REV_70
+%AmdDspDevice.DeviceDesc%=Audio_Device,ACP\DEVTYPE_0004&DEVREV_0002&VEN_1022&DEV_15E2&REV_71
+%AmdDspDevice.DeviceDesc%=Audio_Device,ACP\DEVTYPE_0004&DEVREV_0002&VEN_1022&DEV_15E2&REV_72
+
+;LE Audio Child Devices
+%AmdDspLERenderDevice.DeviceDesc%=Audio_Child_Device, {6F343DF4-D21D-439B-AAED-CC49E25FE278}\Render
+%AmdDspLECaptureDevice.DeviceDesc%=Audio_Child_Device, {6F343DF4-D21D-439B-AAED-CC49E25FE278}\Capture
+;Classic Audio Child Devices
+%AmdDspClassicRenderDevice.DeviceDesc%=Audio_Child_Device, {36EAB28D-FBE5-4361-BB91-31E636001691}\Render
+%AmdDspClassicCaptureDevice.DeviceDesc%=Audio_Child_Device, {36EAB28D-FBE5-4361-BB91-31E636001691}\Capture
+%AmdDspClassicRenderDevice.DeviceDesc%=Audio_Child_Device_Sideband, {7B9A21A0-16A9-445D-8187-7E7D0040AD18}\Render
+%AmdDspClassicCaptureDevice.DeviceDesc%=Audio_Child_Device_Sideband, {7B9A21A0-16A9-445D-8187-7E7D0040AD18}\Capture
+
+[Audio_Device.NT]
+CopyFiles=Audio_Device.NT.Copy
+FeatureScore = FE
+
+[Audio_Child_Device.NT]
+CopyFiles=Audio_Device.NT.Copy
+
+[Audio_Child_Device_Sideband.NT]
+CopyFiles=Audio_Device.NT.Copy
+
+[Audio_Device.NT.Copy]
+amdacpbtacx.sys
+
+[Audio_Device.NT.Services]
+AddService = AMDAcpBtAudioService, %SPSVCINST_ASSOCSERVICE%, Audio_Service_Inst
+
+[Audio_Child_Device.NT.Services]
+;NULL Driver
+AddService = , %SPSVCINST_ASSOCSERVICE%
+
+[Audio_Child_Device_Sideband.NT.Services]
+;NULL Driver
+AddService = , %SPSVCINST_ASSOCSERVICE%
+
+[Audio_Service_Inst]
+DisplayName    = %AmdDspDevice.DeviceDesc%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %13%\amdacpbtacx.sys
+
+[SourceDisksNames]
+1 = %DiskId1%,,,""
+
+[SourceDisksFiles]
+amdacpbtacx.sys  = 1,,
+
+[Audio_Device.NT.Wdf]
+KmdfService = AMDAcpBtAudioService, Audio_wdfsect
+
+[Audio_wdfsect]
+KmdfLibraryVersion = 1.31
+
+;
+; render interfaces: speaker
+;
+[Audio_Device.I.Speaker]
+AddReg=Audio_Device.I.Speaker.AddReg
+[Audio_Device.I.Speaker.AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%Audio_Device.Speaker.szPname%
+; The following lines opt-in to pull mode.
+HKR,EP\0,%PKEY_AudioEndpoint_Association%,,%KSNODETYPE_ANY%
+HKR,EP\0,%PKEY_AudioEndpoint_Supports_EventDriven_Mode%,0x00010001,0x1
+
+[Audio_Device.I.SpeakerSideband]
+AddReg=Audio_Device.I.SpeakerSideband.AddReg
+[Audio_Device.I.SpeakerSideband.AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%Audio_Device.SpeakerSideband.szPname%
+; The following lines opt-in to pull mode.
+HKR,EP\0,%PKEY_AudioEndpoint_Association%,,%KSNODETYPE_ANY%
+HKR,EP\0,%PKEY_AudioEndpoint_Supports_EventDriven_Mode%,0x00010001,0x1
+
+
+;
+; capture interfaces: microphone
+;
+[Audio_Device.I.Microphone]
+AddReg=Audio_Device.I.Microphone.AddReg
+[Audio_Device.I.Microphone.AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%Audio_Device.Microphone.szPname%
+; The following lines opt-in to pull mode.
+HKR,EP\0,%PKEY_AudioEndpoint_Association%,,%KSNODETYPE_ANY%
+HKR,EP\0,%PKEY_AudioEndpoint_Supports_EventDriven_Mode%,0x00010001,0x1
+
+[Audio_Device.I.MicrophoneSideband]
+AddReg=Audio_Device.I.MicrophoneSideband.AddReg
+[Audio_Device.I.MicrophoneSideband.AddReg]
+HKR,,CLSID,,%Proxy.CLSID%
+HKR,,FriendlyName,,%Audio_Device.MicrophoneSideband.szPname%
+; The following lines opt-in to pull mode.
+HKR,EP\0,%PKEY_AudioEndpoint_Association%,,%KSNODETYPE_ANY%
+HKR,EP\0,%PKEY_AudioEndpoint_Supports_EventDriven_Mode%,0x00010001,0x1
+
+;[Audio_Device.NT.Interfaces]
+; Interfaces for render endpoint. capture is used for loopback.
+;AddInterface=%KSCATEGORY_AUDIO%,    %KSNAME_Speaker%,  Audio_Device.I.Speaker
+;AddInterface=%KSCATEGORY_RENDER%,   %KSNAME_Speaker%,  Audio_Device.I.Speaker
+;AddInterface=%KSCATEGORY_REALTIME%, %KSNAME_Speaker%,  Audio_Device.I.Speaker
+;AddInterface=%KSCATEGORY_CAPTURE%,  %KSNAME_Speaker%,  Audio_Device.I.Speaker
+
+; Interfaces for mic capture endpoint
+;AddInterface=%KSCATEGORY_AUDIO%,    %KSNAME_Microphone%, Audio_Device.I.Microphone
+;AddInterface=%KSCATEGORY_CAPTURE%,  %KSNAME_Microphone%, Audio_Device.I.Microphone
+;AddInterface=%KSCATEGORY_REALTIME%, %KSNAME_Microphone%, Audio_Device.I.Microphone
+
+;
+; PnP add interface directives for dynamic enumerated audio endpoints.
+;
+[Audio_Child_Device.NT.Interfaces]
+; Interfaces for render endpoint. capture is used for loopback.
+AddInterface=%KSCATEGORY_AUDIO%,    %KSNAME_Speaker%,  Audio_Device.I.Speaker
+AddInterface=%KSCATEGORY_RENDER%,   %KSNAME_Speaker%,  Audio_Device.I.Speaker
+AddInterface=%KSCATEGORY_REALTIME%, %KSNAME_Speaker%,  Audio_Device.I.Speaker
+AddInterface=%KSCATEGORY_CAPTURE%,  %KSNAME_Speaker%,  Audio_Device.I.Speaker
+
+; Interfaces for mic capture endpoint
+AddInterface=%KSCATEGORY_AUDIO%,    %KSNAME_Microphone%, Audio_Device.I.Microphone
+AddInterface=%KSCATEGORY_CAPTURE%,  %KSNAME_Microphone%, Audio_Device.I.Microphone
+AddInterface=%KSCATEGORY_REALTIME%, %KSNAME_Microphone%, Audio_Device.I.Microphone
+
+
+[Audio_Child_Device_Sideband.NT.Interfaces]
+AddInterface=%KSCATEGORY_AUDIO%,    %KSNAME_A2dpSpeaker_Sideband%, Audio_Device.I.SpeakerSideband
+AddInterface=%KSCATEGORY_TOPOLOGY%, %KSNAME_A2dpSpeaker_Sideband%, Audio_Device.I.SpeakerSideband
+
+AddInterface=%KSCATEGORY_AUDIO%,    %KSNAME_HfpSpeaker_Sideband%, Audio_Device.I.SpeakerSideband
+AddInterface=%KSCATEGORY_TOPOLOGY%, %KSNAME_HfpSpeaker_Sideband%, Audio_Device.I.SpeakerSideband
+
+; Interfaces for mic capture endpoint
+AddInterface=%KSCATEGORY_AUDIO%,    %KSNAME_Microphone_Sideband%, Audio_Device.I.MicrophoneSideband
+AddInterface=%KSCATEGORY_TOPOLOGY%,  %KSNAME_Microphone_Sideband%, Audio_Device.I.MicrophoneSideband
+
+
+[Strings]
+;
+;Non-localizable
+;
+KSNAME_Speaker="Speaker"
+KSNAME_Microphone="Microphone"
+
+KSNAME_A2dpSpeaker_Sideband="A2dpSpeakerSideband"
+KSNAME_HfpSpeaker_Sideband="HfpSpeakerSideband"
+KSNAME_Microphone_Sideband="HfpMicrophoneSideband"
+
+SPSVCINST_ASSOCSERVICE = 0x00000002
+ProviderName = "VS_Microsoft"
+
+Proxy.CLSID         = "{17CCA71B-ECD7-11D0-B908-00A0C9223196}"
+KSCATEGORY_AUDIO    = "{6994AD04-93EF-11D0-A3CC-00A0C9223196}"
+KSCATEGORY_RENDER   = "{65E8773E-8F56-11D0-A3B9-00A0C9223196}"
+KSCATEGORY_CAPTURE  = "{65E8773D-8F56-11D0-A3B9-00A0C9223196}"
+KSCATEGORY_REALTIME = "{EB115FFC-10C8-4964-831D-6DCB02E6F23F}"
+KSCATEGORY_TOPOLOGY = "{DDA54A40-1E4C-11D1-A050-405705C10000}"
+
+MediaCategories="SYSTEM\CurrentControlSet\Control\MediaCategories"
+KSNODETYPE_ANY      = "{00000000-0000-0000-0000-000000000000}"
+
+PKEY_AudioEndpoint_ControlPanelPageProvider  = "{1DA5D803-D492-4EDD-8C23-E0C0FFEE7F0E},1"
+PKEY_AudioEndpoint_Association               = "{1DA5D803-D492-4EDD-8C23-E0C0FFEE7F0E},2"
+PKEY_AudioEndpoint_Supports_EventDriven_Mode = "{1DA5D803-D492-4EDD-8C23-E0C0FFEE7F0E},7"
+PKEY_AudioEndpoint_Default_VolumeInDb        = "{1DA5D803-D492-4EDD-8C23-E0C0FFEE7F0E},9"
+
+;
+;Localizable
+;
+ManufacturerName = "AMD"
+DiskId1 = "AMD Driver Installation Disk"
+AmdDspDevice.DeviceDesc = "AMD Bluetooth Audio Device"
+
+;LE Audio Child Devices names
+AmdDspLERenderDevice.DeviceDesc = "AMD Bluetooth LE Render Audio Device"
+AmdDspLECaptureDevice.DeviceDesc = "AMD Bluetooth LE Capture Audio Device"
+
+;Classic Audio Child Devices names
+AmdDspClassicRenderDevice.DeviceDesc = "AMD Bluetooth Render Audio Device"
+AmdDspClassicCaptureDevice.DeviceDesc = "AMD Bluetooth Capture Audio Device"
+
+;; friendly names
+Audio_Device.Speaker.szPname="AMD Bluetooth Audio Device Speaker"
+Audio_Device.Microphone.szPname="AMD Bluetooth Audio Device Microphone"
+
+;; friendly names
+Audio_Device.SpeakerSideband.szPname="AMD Bluetooth Audio Device Speaker Sideband"
+Audio_Device.MicrophoneSideband.szPname="AMD Bluetooth Audio Device Microphone Sideband"
